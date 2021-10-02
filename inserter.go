@@ -6,9 +6,9 @@ import (
 )
 
 func (dtb database) Insert(c context.Context, record dalgo.Record, opts ...dalgo.InsertOption) error {
-	panic("implement me")
+	return nil
 }
 
 func (t transaction) Insert(c context.Context, record dalgo.Record, opts ...dalgo.InsertOption) error {
-	panic("implement me")
+	return nil
 }
