@@ -7,7 +7,7 @@ import (
 	"github.com/strongo/dalgo"
 )
 
-type executor = func(query string, args ...interface{}) (sql.Result, error)
+type statementExecutor = func(query string, args ...interface{}) (sql.Result, error)
 
 func (dtb database) Delete(ctx context.Context, key *dalgo.Key) error {
 	return deleteSingle(ctx, key, dtb.db.Exec)
@@ -21,7 +21,7 @@ func (dtb database) DeleteMulti(ctx context.Context, keys []*dalgo.Key) error {
 	return deleteMulti(ctx, keys, dtb.db.Exec)
 }
 
-func deleteSingle(_ context.Context, key *dalgo.Key, exec executor) error {
+func deleteSingle(_ context.Context, key *dalgo.Key, exec statementExecutor) error {
 	query := fmt.Sprintf(`DELETE FROM %v WHERE id = ?`, key.Kind())
 	_, err := exec(query, key.ID)
 	if err != nil {
@@ -30,7 +30,7 @@ func deleteSingle(_ context.Context, key *dalgo.Key, exec executor) error {
 	return nil
 }
 
-func deleteMulti(ctx context.Context, keys []*dalgo.Key, exec executor) error {
+func deleteMulti(ctx context.Context, keys []*dalgo.Key, exec statementExecutor) error {
 	var prevTable string
 	var tableKeys []*dalgo.Key
 	delete := func(table string, keys []*dalgo.Key) error {
@@ -69,7 +69,7 @@ func deleteMulti(ctx context.Context, keys []*dalgo.Key, exec executor) error {
 	}
 	return nil
 }
-func deleteMultiInSingleTable(_ context.Context, keys []*dalgo.Key, exec executor) error {
+func deleteMultiInSingleTable(_ context.Context, keys []*dalgo.Key, exec statementExecutor) error {
 	query := fmt.Sprintf(`DELETE FROM %v WHERE id IN (`, keys[0].Kind())
 	args := make([]interface{}, len(keys))
 	query += ""

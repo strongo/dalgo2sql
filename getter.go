@@ -105,8 +105,13 @@ func getMultiFromSingleTable(_ context.Context, records []dalgo.Record, exec que
 			}
 		}
 	}
-	for _, record := range records {
-		record.SetError(dalgo.NewErrNotFoundByKey(record.Key(), dalgo.ErrRecordNotFound))
+	if err = rows.Err(); err == sql.ErrNoRows {
+		err = nil
+	} else if err != nil {
+		return err
 	}
-	return nil
+	for _, record := range records {
+		record.SetError(dalgo.NewErrNotFoundByKey(record.Key(), nil))
+	}
+	return err
 }
