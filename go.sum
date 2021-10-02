@@ -6,5 +6,9 @@ github.com/proullon/ramsql v0.0.0-20210730175921-2692f3496a21 h1:3bZqQXUcAS8Y2dL
 github.com/proullon/ramsql v0.0.0-20210730175921-2692f3496a21/go.mod h1:jG8oAQG0ZPHPyxg5QlMERS31airDC+ZuqiAe8DUvFVo=
 github.com/strongo/dalgo v0.0.0-20211002102736-4820fcc6a8f3 h1:fmO0uGWKdIVy0acuUZ8pUK8KkS0mOXhjIHZMDyqjfQQ=
 github.com/strongo/dalgo v0.0.0-20211002102736-4820fcc6a8f3/go.mod h1:2cen3Tk4Vjn+HTs42sZykv9RakPi4jOhbTRVqJ83yqQ=
+github.com/strongo/dalgo-end2end-tests v0.0.0-20211002134949-73c825090ceb h1:xWcTEVWwOE0brC2hORG0/eX4ZZo3D87SlC69lCb2krw=
+github.com/strongo/dalgo-end2end-tests v0.0.0-20211002134949-73c825090ceb/go.mod h1:+/HOsc/YxCuajj1wdfPAJvW68TPdoWMRQyyJjrjo1tM=
 github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d h1:I8qa7ggQ5RT+hO5gTTaBtS8ZEvbsBIik//AdM4dZL4g=
 github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d/go.mod h1:b5FiRTvklOIQI/iX+4qfwtK7Jrs+9KTZFn1dP9iX26o=
+github.com/strongo/validation v0.0.0-20210908182457-7acc8bdbeffd h1:hvHVKVARPjItp1EQxTk0v3SxE8fICA3n0s2iVeejhOU=
+github.com/strongo/validation v0.0.0-20210908182457-7acc8bdbeffd/go.mod h1:X1c1hPVXIUbKlyRrU/WSKKnbA1C0dLv7w7xOfeoL0iI=
