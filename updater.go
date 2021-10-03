@@ -31,10 +31,6 @@ func updateSingle(_ context.Context, options Options, execStatement statementExe
 		qry.text += fmt.Sprintf("\n\t%v = ?", update.Field)
 		qry.args = append(qry.args, update.Value)
 	}
-	result, err := execStatement(qry.text, qry.args...)
-	if err != nil {
-		return errors.WithMessage(err, "failed to update a single record")
-	}
 	collection := key.Kind()
 	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
 		qry.text += fmt.Sprintf("\n\tWHERE %v = ?", rs.PrimaryKey[0].Name)
@@ -42,6 +38,10 @@ func updateSingle(_ context.Context, options Options, execStatement statementExe
 		qry.text += "\n\tWHERE ID = ?"
 	}
 	qry.args = append(qry.args, key.ID)
+	result, err := execStatement(qry.text, qry.args...)
+	if err != nil {
+		return errors.WithMessage(err, "failed to update a single record")
+	}
 	if count, err := result.RowsAffected(); err == nil && count > 1 {
 		return fmt.Errorf("expected to update a single row, number of affected rows: %v", count)
 	}
