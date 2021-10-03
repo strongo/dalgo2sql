@@ -51,7 +51,18 @@ func getSingle(_ context.Context, options Options, record dalgo.Record, exec que
 }
 
 func getMulti(ctx context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
-	return getMultiFromSingleTable(ctx, options, records, exec)
+	byCollection := make(map[string][]dalgo.Record)
+	for _, r := range records {
+		id := r.Key().Kind()
+		recs := byCollection[id]
+		byCollection[id] = append(recs, r)
+	}
+	for _, recs := range byCollection {
+		if err := getMultiFromSingleTable(ctx, options, recs, exec); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getMultiFromSingleTable(_ context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
