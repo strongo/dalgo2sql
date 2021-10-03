@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/strongo/dalgo"
+	"strings"
 )
 
 type statementExecutor = func(query string, args ...interface{}) (sql.Result, error)
@@ -49,12 +50,17 @@ func deleteMulti(ctx context.Context, options Options, keys []*dalgo.Key, exec s
 			}
 			return nil
 		}
-		if err := deleteMultiInSingleTable(ctx, keys, exec); err != nil {
-			return err
+		for _, key := range keys {
+			if err := deleteSingle(ctx, options, key, exec); err != nil {
+				return err
+			}
 		}
-		return nil
+		//if err := deleteMultiInSingleTable(ctx, options, keys, exec); err != nil {
+		//	return err
+		//}
+		return nil // TODO: code above commented out as tests are failing for RAMSQL driver.
 	}
-	for _, key := range keys {
+	for i, key := range keys {
 		kind := key.Kind()
 		if kind == prevTable {
 			tableKeys = append(tableKeys, key)
@@ -66,7 +72,8 @@ func deleteMulti(ctx context.Context, options Options, keys []*dalgo.Key, exec s
 			}
 		}
 		prevTable = kind
-		tableKeys = make([]*dalgo.Key, 0)
+		tableKeys = make([]*dalgo.Key, 1, len(keys)-i)
+		tableKeys[0] = key
 	}
 	if len(tableKeys) > 0 {
 		if err := delete(prevTable, tableKeys); err != nil {
@@ -75,15 +82,22 @@ func deleteMulti(ctx context.Context, options Options, keys []*dalgo.Key, exec s
 	}
 	return nil
 }
-func deleteMultiInSingleTable(_ context.Context, keys []*dalgo.Key, exec statementExecutor) error {
-	query := fmt.Sprintf(`DELETE FROM %v WHERE id IN (`, keys[0].Kind())
+func deleteMultiInSingleTable(_ context.Context, options Options, keys []*dalgo.Key, exec statementExecutor) error {
+	pkCol := "ID"
+
+	collection := keys[0].Kind()
+	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
+		pkCol = rs.PrimaryKey[0].Name
+	}
+
+	query := fmt.Sprintf("DELETE FROM %v WHERE %v IN (", collection, pkCol)
 	args := make([]interface{}, len(keys))
-	query += ""
+	q := make([]string, len(keys))
 	for i, key := range keys {
 		args[i] = key.ID
-		query += "?"
+		q[i] = "?"
 	}
-	query = query[:len(query)-1] + ")"
+	query += strings.Join(q, ", ") + ")"
 	_, err := exec(query, args...)
 	if err != nil {
 		return err

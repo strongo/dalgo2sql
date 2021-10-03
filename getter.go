@@ -66,6 +66,9 @@ func getMulti(ctx context.Context, options Options, records []dalgo.Record, exec
 }
 
 func getMultiFromSingleTable(_ context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
+	if len(records) == 0 {
+		return nil
+	}
 	records = append(make([]dalgo.Record, 0, len(records)), records...)
 	collection := records[0].Key().Kind()
 	val := reflect.ValueOf(records[0].Data()).Elem()
@@ -75,17 +78,23 @@ func getMultiFromSingleTable(_ context.Context, options Options, records []dalgo
 	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
 		idCol = rs.PrimaryKey[0].Name
 	}
-	queryText := fmt.Sprintf("SELECT %v FROM %v WHERE %v IN (",
+	queryText := fmt.Sprintf("SELECT %v FROM %v WHERE %v",
 		strings.Join(fields, ", "),
 		records[0].Key().Kind(),
 		idCol,
 	)
+	q := make([]string, len(records))
 	args := make([]interface{}, len(records))
 	for i, record := range records {
 		args[i] = record.Key().ID
-		queryText += "?,"
+		q[i] = "?"
 	}
-	queryText = queryText[:len(queryText)-1] + ")"
+	if len(records) == 1 {
+		queryText += " = ?"
+	} else {
+		queryText += " IN (" + strings.Join(q, ", ")
+	}
+	queryText += ")"
 	rows, err := exec(queryText, args...)
 	if err != nil {
 		return err
@@ -137,8 +146,10 @@ func rowIntoRecord(rows *sql.Rows, record dalgo.Record, pkIncluded bool) error {
 		panic("getting records by key requires a record with data")
 	}
 	if err := scanIntoData(rows, data, pkIncluded); err != nil {
+		record.SetError(err)
 		return err
 	}
+	record.SetError(nil)
 	return nil
 	//return delayedScanWithDataTo(rows, record)
 }
