@@ -7,18 +7,24 @@ import (
 	"github.com/strongo/dalgo"
 )
 
+// Field defines field
 type Field struct {
 	Name string
 }
 
+// RecordsetType defines type of a database recordset
 type RecordsetType = int
 
 const (
+	// Table identifies a table in a database
 	Table RecordsetType = iota
+	// View identifies a view in a database
 	View
+	// StoredProcedure identifies a stored procedure in a database
 	StoredProcedure
 )
 
+// Recordset hold recordset settings
 type Recordset struct {
 	Type       RecordsetType
 	Name       string
@@ -30,6 +36,7 @@ type database struct {
 	options Options
 }
 
+// Options provides database options for DALgo
 type Options struct {
 	Recordsets map[string]Recordset
 }

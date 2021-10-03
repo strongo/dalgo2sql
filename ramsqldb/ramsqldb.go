@@ -2,10 +2,12 @@ package ramsqldb
 
 import (
 	"database/sql"
+	// Calling OpenTestDb will use RamSQL database
 	_ "github.com/proullon/ramsql/driver"
 	"testing"
 )
 
+// OpenTestDb opens a test database using RamSQL
 func OpenTestDb(t *testing.T) *sql.DB {
 	db, err := sql.Open("ramsql", "TestNewDatabase")
 	if err != nil {
