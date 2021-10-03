@@ -7,9 +7,9 @@ import (
 )
 
 type transaction struct {
-	tx *sql.Tx
+	tx      *sql.Tx
+	options Options
 }
-
 
 func (t transaction) Select(ctx context.Context, query dalgo.Query) (dalgo.Reader, error) {
 	panic("implement me")

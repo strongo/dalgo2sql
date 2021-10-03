@@ -11,9 +11,27 @@ type Field struct {
 	Name string
 }
 
+type RecordsetType = int
+
+const (
+	Table RecordsetType = iota
+	View
+	StoredProcedure
+)
+
+type Recordset struct {
+	Type       RecordsetType
+	Name       string
+	PrimaryKey []Field // Primary keys by table name
+}
+
 type database struct {
-	db *sql.DB
-	pk map[string][]Field // Primary keys by table name
+	db      *sql.DB
+	options Options
+}
+
+type Options struct {
+	Recordsets map[string]Recordset
 }
 
 func (dtb database) RunInTransaction(ctx context.Context, f func(ctx context.Context, tx dalgo.Transaction) error, options ...dalgo.TransactionOption) error {
@@ -26,7 +44,7 @@ func (dtb database) RunInTransaction(ctx context.Context, f func(ctx context.Con
 	if err != nil {
 		return err
 	}
-	if err = f(ctx, transaction{tx: dbTx}); err != nil {
+	if err = f(ctx, transaction{tx: dbTx, options: dtb.options}); err != nil {
 		if rollbackErr := dbTx.Rollback(); rollbackErr != nil {
 			return dalgo.NewRollbackError(rollbackErr, err)
 		}
@@ -45,12 +63,12 @@ func (dtb database) Select(ctx context.Context, query dalgo.Query) (dalgo.Reader
 var _ dalgo.Database = (*database)(nil)
 
 // NewDatabase creates a new instance of DALgo adapter for BungDB
-func NewDatabase(db *sql.DB, pk map[string][]Field) dalgo.Database {
+func NewDatabase(db *sql.DB, options Options) dalgo.Database {
 	if db == nil {
 		panic("db is a required parameter, got nil")
 	}
 	return database{
-		db: db,
-		pk: pk,
+		db:      db,
+		options: options,
 	}
 }

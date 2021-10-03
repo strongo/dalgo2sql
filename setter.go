@@ -3,35 +3,36 @@ package dalgo2sql
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/strongo/dalgo"
 )
 
 func (dtb database) Set(ctx context.Context, record dalgo.Record) error {
-	return setSingle(ctx, record, dtb.db.Query, dtb.db.Exec)
+	return setSingle(ctx, dtb.options, record, dtb.db.Query, dtb.db.Exec)
 }
 
 func (t transaction) Set(ctx context.Context, record dalgo.Record) error {
-	return setSingle(ctx, record, t.tx.Query, t.tx.Exec)
+	return setSingle(ctx, t.options, record, t.tx.Query, t.tx.Exec)
 }
 
 func (dtb database) SetMulti(ctx context.Context, records []dalgo.Record) error {
-	return setMulti(ctx, records, dtb.db.Query, dtb.db.Exec)
+	return setMulti(ctx, dtb.options, records, dtb.db.Query, dtb.db.Exec)
 }
 
 func (t transaction) SetMulti(ctx context.Context, records []dalgo.Record) error {
-	return setMulti(ctx, records, t.tx.Query, t.tx.Exec)
+	return setMulti(ctx, t.options, records, t.tx.Query, t.tx.Exec)
 }
 
-func setSingle(_ context.Context, record dalgo.Record, execQuery queryExecutor, exec statementExecutor) error {
-	exists, err := existsSingle(record.Key(), execQuery)
+func setSingle(_ context.Context, options Options, record dalgo.Record, execQuery queryExecutor, exec statementExecutor) error {
+	exists, err := existsSingle(options, record.Key(), execQuery)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "failed to check if record exists")
 	}
 	var qry query
 	if exists {
-		qry = buildSingleRecordQuery(update, record)
+		qry = buildSingleRecordQuery(update, options, record)
 	} else {
-		qry = buildSingleRecordQuery(insert, record)
+		qry = buildSingleRecordQuery(insert, options, record)
 	}
 	if _, err := exec(qry.text, qry.args...); err != nil {
 		return err
@@ -39,18 +40,24 @@ func setSingle(_ context.Context, record dalgo.Record, execQuery queryExecutor, 
 	return nil
 }
 
-func setMulti(ctx context.Context, records []dalgo.Record, execQuery queryExecutor, execStatement statementExecutor) error {
-	for _, record := range records {
-		if err := setSingle(ctx, record, execQuery, execStatement); err != nil {
-			return err
+func setMulti(ctx context.Context, options Options, records []dalgo.Record, execQuery queryExecutor, execStatement statementExecutor) error {
+	for i, record := range records {
+		if err := setSingle(ctx, options, record, execQuery, execStatement); err != nil {
+			return errors.WithMessagef(err, "failed to set record #%v of %v", i+1, len(records))
 		}
 	}
 	return nil
 }
 
-func existsSingle(key *dalgo.Key, execQuery queryExecutor) (bool, error) {
-	table := key.Kind()
-	queryText := fmt.Sprintf("SELECT ID FROM %v WHERE ID = ?", table)
+func existsSingle(options Options, key *dalgo.Key, execQuery queryExecutor) (bool, error) {
+	collection := key.Kind()
+	var col = "ID"
+	var where = "ID = ?"
+	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
+		col = rs.PrimaryKey[0].Name
+		where = col + " = ?"
+	}
+	queryText := fmt.Sprintf("SELECT %v FROM %v WHERE ", col, collection) + where
 	rows, err := execQuery(queryText, key.ID)
 	return err == nil && rows.Next(), err
 }

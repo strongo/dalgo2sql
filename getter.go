@@ -14,23 +14,24 @@ import (
 type queryExecutor = func(query string, args ...interface{}) (*sql.Rows, error)
 
 func (dtb database) Get(ctx context.Context, record dalgo.Record) error {
-	return getSingle(ctx, record, dtb.db.Query)
+	return getSingle(ctx, dtb.options, record, dtb.db.Query)
 }
 
 func (t transaction) Get(ctx context.Context, record dalgo.Record) error {
-	return getSingle(ctx, record, t.tx.Query)
+	return getSingle(ctx, t.options, record, t.tx.Query)
 }
 
 func (dtb database) GetMulti(ctx context.Context, records []dalgo.Record) error {
-	return getMulti(ctx, records, dtb.db.Query)
+	return getMulti(ctx, dtb.options, records, dtb.db.Query)
 }
 
 func (t transaction) GetMulti(ctx context.Context, records []dalgo.Record) error {
-	return getMulti(ctx, records, t.tx.Query)
+	return getMulti(ctx, t.options, records, t.tx.Query)
 }
 
-func getSingle(_ context.Context, record dalgo.Record, exec queryExecutor) error {
-	queryText := fmt.Sprintf("SELECT * FROM %v", record.Key().Kind())
+func getSingle(_ context.Context, options Options, record dalgo.Record, exec queryExecutor) error {
+	fields := getSelectFields(record, false, options)
+	queryText := fmt.Sprintf("SELECT %v FROM %v", strings.Join(fields, ", "), record.Key().Kind())
 	rows, err := exec(queryText)
 	if err != nil {
 		record.SetError(err)
@@ -40,7 +41,7 @@ func getSingle(_ context.Context, record dalgo.Record, exec queryExecutor) error
 		record.SetError(dalgo.ErrRecordNotFound)
 		return dalgo.NewErrNotFoundByKey(record.Key(), dalgo.ErrNoMoreRecords)
 	}
-	if err = rowIntoRecord(rows, record); err != nil {
+	if err = rowIntoRecord(rows, record, false); err != nil {
 		return err
 	}
 	if rows.Next() {
@@ -49,15 +50,24 @@ func getSingle(_ context.Context, record dalgo.Record, exec queryExecutor) error
 	return nil
 }
 
-func getMulti(ctx context.Context, records []dalgo.Record, exec queryExecutor) error {
-	return getMultiFromSingleTable(ctx, records, exec)
+func getMulti(ctx context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
+	return getMultiFromSingleTable(ctx, options, records, exec)
 }
 
-func getMultiFromSingleTable(_ context.Context, records []dalgo.Record, exec queryExecutor) error {
-	columns := []string{"StringProp", "IntegerProp"}
-	queryText := fmt.Sprintf("SELECT %v FROM %v WHERE ID IN (",
-		strings.Join(columns, ", "),
+func getMultiFromSingleTable(_ context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
+	records = append(make([]dalgo.Record, 0, len(records)), records...)
+	collection := records[0].Key().Kind()
+	val := reflect.ValueOf(records[0].Data()).Elem()
+	valType := val.Type()
+	fields := getSelectFields(records[0], true, options)
+	idCol := "ID"
+	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
+		idCol = rs.PrimaryKey[0].Name
+	}
+	queryText := fmt.Sprintf("SELECT %v FROM %v WHERE %v IN (",
+		strings.Join(fields, ", "),
 		records[0].Key().Kind(),
+		idCol,
 	)
 	args := make([]interface{}, len(records))
 	for i, record := range records {
@@ -72,14 +82,27 @@ func getMultiFromSingleTable(_ context.Context, records []dalgo.Record, exec que
 
 	for rows.Next() {
 		var id string
-		cells := []interface{}{&id}
+		cells := make([]interface{}, len(fields))
+		cells[0] = &id
+
+		for i := 0; i < valType.NumField(); i++ {
+			switch valType.Field(i).Type {
+			case reflect.ValueOf("").Type():
+				v := ""
+				cells[i+1] = &v
+			case reflect.ValueOf(1).Type():
+				v := 0
+				cells[i+1] = &v
+			}
+		}
+
 		if err = rows.Scan(cells...); err != nil {
 			return err
 		}
 		for i, record := range records {
 			if record.Key().ID == id {
 				records = append(records[:i], records[i+1:]...)
-				if err = rowIntoRecord(rows, record); err != nil {
+				if err = rowIntoRecord(rows, record, true); err != nil {
 					return err
 				}
 				break
@@ -97,66 +120,113 @@ func getMultiFromSingleTable(_ context.Context, records []dalgo.Record, exec que
 	return err
 }
 
-func rowIntoRecord(rows *sql.Rows, record dalgo.Record) error {
+func rowIntoRecord(rows *sql.Rows, record dalgo.Record, pkIncluded bool) error {
 	data := record.Data()
-	if data != nil {
-		if err := scanIntoData(rows, data, record); err != nil {
-			return err
-		}
+	if data == nil {
+		panic("getting records by key requires a record with data")
 	}
-	return delayedScanWithDataTo(rows, record)
-}
-
-func delayedScanWithDataTo(rows *sql.Rows, record dalgo.Record) error {
-	row, err := scanIntoMap(rows)
-	if err != nil {
-		record.SetError(err)
+	if err := scanIntoData(rows, data, pkIncluded); err != nil {
 		return err
 	}
-	record.SetDataTo(func(target interface{}) error {
-		t := reflect.ValueOf(target)
-		val := t.Elem()
-		valType := val.Type()
-		for i := 0; i < val.NumField(); i++ {
-			if val.Field(i).CanSet() {
-				fieldName := valType.Field(i).Name
-				if v, hasValue := row[fieldName]; hasValue {
-					val.Set(reflect.ValueOf(v))
-				}
-			}
-		}
-		return nil
-	})
 	return nil
+	//return delayedScanWithDataTo(rows, record)
 }
 
-func scanIntoData(rows *sql.Rows, data interface{}, record dalgo.Record) error {
+//func delayedScanWithDataTo(rows *sql.Rows, record dalgo.Record) error {
+//	row, err := scanIntoMap(rows)
+//	if err != nil {
+//		record.SetError(err)
+//		return err
+//	}
+//	record.SetDataTo(func(target interface{}) error {
+//		t := reflect.ValueOf(target)
+//		val := t.Elem()
+//		valType := val.Type()
+//		for i := 0; i < val.NumField(); i++ {
+//			if val.Field(i).CanSet() {
+//				fieldName := valType.Field(i).Name
+//				if v, hasValue := row[fieldName]; hasValue {
+//					val.Set(reflect.ValueOf(v))
+//				}
+//			}
+//		}
+//		return nil
+//	})
+//	return nil
+//}
+
+func scanIntoData(rows *sql.Rows, data interface{}, pkIncluded bool) error {
+	if pkIncluded {
+		return scanIntoDataWithPrimaryKeyIncluded(rows, data)
+	}
 	return sqlscan.ScanRow(data, rows)
 }
 
-func scanIntoMap(rows *sql.Rows) (row map[string]interface{}, err error) {
-
-	cols, err := rows.Columns()
-
-	// Create a slice of interface{}'s to represent each cell,
-	// and a second slice to contain pointers to each item in the cells slice.
-	cells := make([]interface{}, len(cols))
-	cellPointers := make([]interface{}, len(cols))
-	for i := range cells {
-		cellPointers[i] = &cells[i]
+func scanIntoDataWithPrimaryKeyIncluded(rows *sql.Rows, data interface{}) error {
+	var id []byte
+	val := reflect.ValueOf(data).Elem()
+	valType := val.Type()
+	cells := make([]interface{}, valType.NumField()+1)
+	cells[0] = &id
+	for i := 1; i < len(cells); i++ {
+		cells[i] = val.Field(i - 1).Addr().Interface()
 	}
+	return rows.Scan(cells...)
+}
 
-	// Scan the row into the cell pointers...
-	if err := rows.Scan(cellPointers...); err != nil {
-		return nil, err
-	}
+//func scanIntoMap(rows *sql.Rows) (row map[string]interface{}, err error) {
+//
+//	cols, err := rows.Columns()
+//
+//	// Create a slice of interface{}'s to represent each cell,
+//	// and a second slice to contain pointers to each item in the cells slice.
+//	cells := make([]interface{}, len(cols))
+//	cellPointers := make([]interface{}, len(cols))
+//	for i := range cells {
+//		cellPointers[i] = &cells[i]
+//	}
+//
+//	// Scan the row into the cell pointers...
+//	if err := rows.Scan(cellPointers...); err != nil {
+//		return nil, err
+//	}
+//
+//	// Create our map, and retrieve the value for each column from the pointers slice,
+//	// storing it in the map with the name of the column as the key.
+//	m := make(map[string]interface{}, len(cols))
+//	for i, colName := range cols {
+//		val := cellPointers[i].(*interface{})
+//		m[colName] = *val
+//	}
+//	return m, nil
+//}
 
-	// Create our map, and retrieve the value for each column from the pointers slice,
-	// storing it in the map with the name of the column as the key.
-	m := make(map[string]interface{}, len(cols))
-	for i, colName := range cols {
-		val := cellPointers[i].(*interface{})
-		m[colName] = *val
+func getSelectFields(record dalgo.Record, includePK bool, options Options) (fields []string) {
+	data := record.Data()
+	if data == nil {
+		panic(fmt.Sprintf("getting by ID requires a record with data, key: %v", record.Key()))
 	}
-	return m, nil
+	val := reflect.ValueOf(record.Data())
+	kind := val.Kind()
+	if kind == reflect.Ptr || kind == reflect.Interface {
+		val = val.Elem()
+	} // TODO: throw panic
+
+	valType := val.Type()
+	numberOfFields := valType.NumField()
+	if includePK {
+		fields = make([]string, 1, numberOfFields+1)
+		collection := record.Key().Kind()
+		if rs, hasOptions := options.Recordsets[collection]; hasOptions {
+			fields[0] = rs.PrimaryKey[0].Name
+		} else {
+			fields[0] = "ID"
+		}
+	} else {
+		fields = make([]string, 0, numberOfFields)
+	}
+	for i := 0; i < numberOfFields; i++ {
+		fields = append(fields, valType.Field(i).Name)
+	}
+	return fields
 }

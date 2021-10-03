@@ -10,19 +10,25 @@ import (
 type statementExecutor = func(query string, args ...interface{}) (sql.Result, error)
 
 func (dtb database) Delete(ctx context.Context, key *dalgo.Key) error {
-	return deleteSingle(ctx, key, dtb.db.Exec)
+	return deleteSingle(ctx, dtb.options, key, dtb.db.Exec)
 }
 
 func (t transaction) Delete(ctx context.Context, key *dalgo.Key) error {
-	return deleteSingle(ctx, key, t.tx.Exec)
+	return deleteSingle(ctx, t.options, key, t.tx.Exec)
 }
 
 func (dtb database) DeleteMulti(ctx context.Context, keys []*dalgo.Key) error {
-	return deleteMulti(ctx, keys, dtb.db.Exec)
+	return deleteMulti(ctx, dtb.options, keys, dtb.db.Exec)
 }
 
-func deleteSingle(_ context.Context, key *dalgo.Key, exec statementExecutor) error {
-	query := fmt.Sprintf(`DELETE FROM %v WHERE ID = ?`, key.Kind())
+func deleteSingle(_ context.Context, options Options, key *dalgo.Key, exec statementExecutor) error {
+	collection := key.Kind()
+	query := fmt.Sprintf("DELETE FROM %v WHERE ", key.Kind())
+	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
+		query += rs.PrimaryKey[0].Name + " = ?"
+	} else {
+		query += "ID = ?"
+	}
 	_, err := exec(query, key.ID)
 	if err != nil {
 		return err
@@ -30,7 +36,7 @@ func deleteSingle(_ context.Context, key *dalgo.Key, exec statementExecutor) err
 	return nil
 }
 
-func deleteMulti(ctx context.Context, keys []*dalgo.Key, exec statementExecutor) error {
+func deleteMulti(ctx context.Context, options Options, keys []*dalgo.Key, exec statementExecutor) error {
 	var prevTable string
 	var tableKeys []*dalgo.Key
 	delete := func(table string, keys []*dalgo.Key) error {
@@ -38,7 +44,7 @@ func deleteMulti(ctx context.Context, keys []*dalgo.Key, exec statementExecutor)
 			return nil
 		}
 		if len(keys) == 1 {
-			if err := deleteSingle(ctx, keys[0], exec); err != nil {
+			if err := deleteSingle(ctx, options, keys[0], exec); err != nil {
 				return err
 			}
 			return nil
@@ -86,5 +92,5 @@ func deleteMultiInSingleTable(_ context.Context, keys []*dalgo.Key, exec stateme
 }
 
 func (t transaction) DeleteMulti(ctx context.Context, keys []*dalgo.Key) error {
-	return deleteMulti(ctx, keys, t.tx.Exec)
+	return deleteMulti(ctx, t.options, keys, t.tx.Exec)
 }

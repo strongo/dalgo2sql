@@ -19,7 +19,7 @@ type query struct {
 	args []interface{}
 }
 
-func buildSingleRecordQuery(o operation, record dalgo.Record) (query query) {
+func buildSingleRecordQuery(o operation, options Options, record dalgo.Record) (query query) {
 	key := record.Key()
 	switch o {
 	case insert:
@@ -38,7 +38,11 @@ func buildSingleRecordQuery(o operation, record dalgo.Record) (query query) {
 
 	if key.ID != nil && o == insert {
 		query.args = append(query.args, key.ID)
-		cols = append(cols, "ID")
+		if rs, hasOptions := options.Recordsets[key.Kind()]; hasOptions && len(rs.PrimaryKey) == 1 {
+			cols = append(cols, rs.PrimaryKey[0].Name)
+		} else {
+			cols = append(cols, "ID")
+		}
 		q = append(q, "?")
 	}
 
@@ -61,9 +65,16 @@ func buildSingleRecordQuery(o operation, record dalgo.Record) (query query) {
 			strings.Join(q, ", "),
 		)
 	case update:
-		query.text = fmt.Sprintf("UPDATE %v SET\n", key.Kind()) +
+		collection := key.Kind()
+		where := "WHERE ID = ?"
+		if rs, hasOptions := options.Recordsets[collection]; hasOptions {
+			if len(rs.PrimaryKey) == 1 {
+				where = fmt.Sprintf("WHERE %v = ?", rs.PrimaryKey[0].Name)
+			}
+		}
+		query.text = fmt.Sprintf("UPDATE %v SET\n", collection) +
 			strings.Join(q, ",\n") +
-			"WHERE ID = ?"
+			where
 		query.args = append(query.args, key.ID)
 	}
 	return query

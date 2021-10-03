@@ -12,7 +12,7 @@ require (
 	github.com/proullon/ramsql v0.0.0-20210730175921-2692f3496a21 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
-	github.com/strongo/dalgo-end2end-tests v0.0.0-20211003013126-9f9d0915c583 // indirect
+	github.com/strongo/dalgo-end2end-tests v0.0.0-20211003153145-25f96c482017 // indirect
 	github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d // indirect
 	github.com/strongo/validation v0.0.0-20210908182457-7acc8bdbeffd // indirect
 	gopkg.in/yaml.v2 v2.2.3 // indirect
