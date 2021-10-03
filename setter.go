@@ -50,7 +50,7 @@ func setMulti(ctx context.Context, records []dalgo.Record, execQuery queryExecut
 
 func existsSingle(key *dalgo.Key, execQuery queryExecutor) (bool, error) {
 	table := key.Kind()
-	queryText := fmt.Sprintf("SELECT * FROM %v WHERE id = ?", table)
+	queryText := fmt.Sprintf("SELECT ID FROM %v WHERE ID = ?", table)
 	rows, err := execQuery(queryText, key.ID)
 	return err == nil && rows.Next(), err
 }

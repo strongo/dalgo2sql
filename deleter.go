@@ -22,7 +22,7 @@ func (dtb database) DeleteMulti(ctx context.Context, keys []*dalgo.Key) error {
 }
 
 func deleteSingle(_ context.Context, key *dalgo.Key, exec statementExecutor) error {
-	query := fmt.Sprintf(`DELETE FROM %v WHERE id = ?`, key.Kind())
+	query := fmt.Sprintf(`DELETE FROM %v WHERE ID = ?`, key.Kind())
 	_, err := exec(query, key.ID)
 	if err != nil {
 		return err

@@ -12,9 +12,9 @@ func OpenTestDb(t *testing.T) *sql.DB {
 		t.Fatalf("sql.Open : Error : %s\n", err)
 	}
 	batch := []string{
-		"CREATE TABLE E2ETest1 (id VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
-		"CREATE TABLE E2ETest2 (id VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
-		"CREATE TABLE NonExistingKind (id VARCHAR(10) PRIMARY KEY);",
+		"CREATE TABLE E2ETest1 (ID VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
+		"CREATE TABLE E2ETest2 (ID VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
+		"CREATE TABLE NonExistingKind (ID VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
 	}
 	for _, b := range batch {
 		_, err := db.Exec(b)

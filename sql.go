@@ -38,7 +38,7 @@ func buildSingleRecordQuery(o operation, record dalgo.Record) (query query) {
 
 	if key.ID != nil && o == insert {
 		query.args = append(query.args, key.ID)
-		cols = append(cols, "id")
+		cols = append(cols, "ID")
 		q = append(q, "?")
 	}
 
@@ -63,7 +63,7 @@ func buildSingleRecordQuery(o operation, record dalgo.Record) (query query) {
 	case update:
 		query.text = fmt.Sprintf("UPDATE %v SET\n", key.Kind()) +
 			strings.Join(q, ",\n") +
-			"WHERE id = ?"
+			"WHERE ID = ?"
 		query.args = append(query.args, key.ID)
 	}
 	return query

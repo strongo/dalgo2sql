@@ -10,6 +10,6 @@ import (
 func TestEndToEnd(t *testing.T) {
 	db := ramsqldb.OpenTestDb(t)
 	defer db.Close()
-	database := dalgo2sql.NewDatabase(db)
+	database := dalgo2sql.NewDatabase(db, nil)
 	end2end.TestDalgoDB(t, database)
 }
