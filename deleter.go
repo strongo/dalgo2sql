@@ -15,7 +15,7 @@ func (dtb database) Delete(ctx context.Context, key *dal.Key) error {
 }
 
 func (t transaction) Delete(ctx context.Context, key *dal.Key) error {
-	return deleteSingle(ctx, t.options, key, t.tx.Exec)
+	return deleteSingle(ctx, t.sqlOptions, key, t.tx.Exec)
 }
 
 func (dtb database) DeleteMulti(ctx context.Context, keys []*dal.Key) error {
@@ -55,7 +55,7 @@ func deleteMulti(ctx context.Context, options Options, keys []*dal.Key, exec sta
 				return err
 			}
 		}
-		//if err := deleteMultiInSingleTable(ctx, options, keys, exec); err != nil {
+		//if err := deleteMultiInSingleTable(ctx, sqlOptions, keys, exec); err != nil {
 		//	return err
 		//}
 		return nil // TODO: code above commented out as tests are failing for RAMSQL driver.
@@ -106,5 +106,5 @@ func deleteMultiInSingleTable(_ context.Context, options Options, keys []*dal.Ke
 }
 
 func (t transaction) DeleteMulti(ctx context.Context, keys []*dal.Key) error {
-	return deleteMulti(ctx, t.options, keys, t.tx.Exec)
+	return deleteMulti(ctx, t.sqlOptions, keys, t.tx.Exec)
 }

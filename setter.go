@@ -12,7 +12,7 @@ func (dtb database) Set(ctx context.Context, record dal.Record) error {
 }
 
 func (t transaction) Set(ctx context.Context, record dal.Record) error {
-	return setSingle(ctx, t.options, record, t.tx.Query, t.tx.Exec)
+	return setSingle(ctx, t.sqlOptions, record, t.tx.Query, t.tx.Exec)
 }
 
 func (dtb database) SetMulti(ctx context.Context, records []dal.Record) error {
@@ -20,7 +20,7 @@ func (dtb database) SetMulti(ctx context.Context, records []dal.Record) error {
 }
 
 func (t transaction) SetMulti(ctx context.Context, records []dal.Record) error {
-	return setMulti(ctx, t.options, records, t.tx.Query, t.tx.Exec)
+	return setMulti(ctx, t.sqlOptions, records, t.tx.Query, t.tx.Exec)
 }
 
 func setSingle(_ context.Context, options Options, record dal.Record, execQuery queryExecutor, exec statementExecutor) error {

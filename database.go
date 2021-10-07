@@ -36,7 +36,7 @@ type database struct {
 	options Options
 }
 
-// Options provides database options for DALgo
+// Options provides database sqlOptions for DALgo
 type Options struct {
 	Recordsets map[string]Recordset
 }
@@ -55,7 +55,7 @@ func (dtb database) RunReadwriteTransaction(ctx context.Context, f dal.RWTxWorke
 	if err != nil {
 		return err
 	}
-	if err = f(ctx, transaction{tx: dbTx, options: dtb.options}); err != nil {
+	if err = f(ctx, transaction{tx: dbTx, sqlOptions: dtb.options}); err != nil {
 		if rollbackErr := dbTx.Rollback(); rollbackErr != nil {
 			return dal.NewRollbackError(rollbackErr, err)
 		}

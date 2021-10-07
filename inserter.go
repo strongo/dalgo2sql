@@ -10,7 +10,7 @@ func (dtb database) Insert(ctx context.Context, record dal.Record, opts ...dal.I
 }
 
 func (t transaction) Insert(ctx context.Context, record dal.Record, opts ...dal.InsertOption) error {
-	return insertSingle(ctx, t.options, record, t.tx.Exec)
+	return insertSingle(ctx, t.sqlOptions, record, t.tx.Exec)
 }
 
 func insertSingle(_ context.Context, options Options, record dal.Record, exec statementExecutor, opts ...dal.InsertOption) error {

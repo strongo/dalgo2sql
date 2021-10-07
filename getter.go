@@ -18,7 +18,7 @@ func (dtb database) Get(ctx context.Context, record dal.Record) error {
 }
 
 func (t transaction) Get(ctx context.Context, record dal.Record) error {
-	return getSingle(ctx, t.options, record, t.tx.Query)
+	return getSingle(ctx, t.sqlOptions, record, t.tx.Query)
 }
 
 func (dtb database) GetMulti(ctx context.Context, records []dal.Record) error {
@@ -26,7 +26,7 @@ func (dtb database) GetMulti(ctx context.Context, records []dal.Record) error {
 }
 
 func (t transaction) GetMulti(ctx context.Context, records []dal.Record) error {
-	return getMulti(ctx, t.options, records, t.tx.Query)
+	return getMulti(ctx, t.sqlOptions, records, t.tx.Query)
 }
 
 func getSingle(_ context.Context, options Options, record dal.Record, exec queryExecutor) error {

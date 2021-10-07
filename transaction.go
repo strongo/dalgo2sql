@@ -7,13 +7,13 @@ import (
 )
 
 type transaction struct {
-	tx             *sql.Tx
-	options        Options
-	isolationLevel dal.TxIsolationLevel
+	tx         *sql.Tx
+	sqlOptions Options
+	txOptions  dal.TransactionOptions
 }
 
-func (t transaction) IsolationLevel() dal.TxIsolationLevel {
-	return t.isolationLevel
+func (t transaction) Options() dal.TransactionOptions {
+	return t.txOptions
 }
 
 func (t transaction) Select(ctx context.Context, query dal.Select) (dal.Reader, error) {

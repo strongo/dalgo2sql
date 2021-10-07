@@ -12,7 +12,7 @@ func (dtb database) Update(ctx context.Context, key *dal.Key, updates []dal.Upda
 }
 
 func (t transaction) Update(ctx context.Context, key *dal.Key, updates []dal.Update, preconditions ...dal.Precondition) error {
-	return updateSingle(ctx, t.options, t.tx.Exec, key, updates, preconditions...)
+	return updateSingle(ctx, t.sqlOptions, t.tx.Exec, key, updates, preconditions...)
 }
 
 func (dtb database) UpdateMulti(ctx context.Context, keys []*dal.Key, updates []dal.Update, preconditions ...dal.Precondition) error {
@@ -20,7 +20,7 @@ func (dtb database) UpdateMulti(ctx context.Context, keys []*dal.Key, updates []
 }
 
 func (t transaction) UpdateMulti(ctx context.Context, keys []*dal.Key, updates []dal.Update, preconditions ...dal.Precondition) error {
-	return updateMulti(ctx, t.options, t.tx.Exec, keys, updates, preconditions...)
+	return updateMulti(ctx, t.sqlOptions, t.tx.Exec, keys, updates, preconditions...)
 }
 
 func updateSingle(_ context.Context, options Options, execStatement statementExecutor, key *dal.Key, updates []dal.Update, preconditions ...dal.Precondition) error {
