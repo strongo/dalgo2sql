@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/pkg/errors"
-	"github.com/strongo/dalgo"
+	"github.com/strongo/dalgo/dal"
 )
 
 // Field defines field
@@ -41,8 +41,12 @@ type Options struct {
 	Recordsets map[string]Recordset
 }
 
-func (dtb database) RunInTransaction(ctx context.Context, f func(ctx context.Context, tx dalgo.Transaction) error, options ...dalgo.TransactionOption) error {
-	dalgoTxOptions := dalgo.NewTransactionOptions(options...)
+func (dtb database) RunReadonlyTransaction(ctx context.Context, f dal.ROTxWorker, options ...dal.TransactionOption) error {
+	return nil
+}
+
+func (dtb database) RunReadwriteTransaction(ctx context.Context, f dal.RWTxWorker, options ...dal.TransactionOption) error {
+	dalgoTxOptions := dal.NewTransactionOptions(options...)
 	sqlTxOptions := sql.TxOptions{}
 	if dalgoTxOptions.IsReadonly() {
 		sqlTxOptions.ReadOnly = true
@@ -53,7 +57,7 @@ func (dtb database) RunInTransaction(ctx context.Context, f func(ctx context.Con
 	}
 	if err = f(ctx, transaction{tx: dbTx, options: dtb.options}); err != nil {
 		if rollbackErr := dbTx.Rollback(); rollbackErr != nil {
-			return dalgo.NewRollbackError(rollbackErr, err)
+			return dal.NewRollbackError(rollbackErr, err)
 		}
 		return err
 	}
@@ -63,14 +67,14 @@ func (dtb database) RunInTransaction(ctx context.Context, f func(ctx context.Con
 	return nil
 }
 
-func (dtb database) Select(ctx context.Context, query dalgo.Query) (dalgo.Reader, error) {
+func (dtb database) Select(ctx context.Context, query dal.Select) (dal.Reader, error) {
 	panic("implement me")
 }
 
-var _ dalgo.Database = (*database)(nil)
+var _ dal.Database = (*database)(nil)
 
 // NewDatabase creates a new instance of DALgo adapter for BungDB
-func NewDatabase(db *sql.DB, options Options) dalgo.Database {
+func NewDatabase(db *sql.DB, options Options) dal.Database {
 	if db == nil {
 		panic("db is a required parameter, got nil")
 	}

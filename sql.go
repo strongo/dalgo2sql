@@ -2,7 +2,7 @@ package dalgo2sql
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo"
+	"github.com/strongo/dalgo/dal"
 	"reflect"
 	"strings"
 )
@@ -19,7 +19,7 @@ type query struct {
 	args []interface{}
 }
 
-func buildSingleRecordQuery(o operation, options Options, record dalgo.Record) (query query) {
+func buildSingleRecordQuery(o operation, options Options, record dal.Record) (query query) {
 	key := record.Key()
 	switch o {
 	case insert:

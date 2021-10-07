@@ -6,8 +6,8 @@ require (
 	github.com/georgysavva/scany v0.2.9
 	github.com/pkg/errors v0.9.1
 	github.com/proullon/ramsql v0.0.0-20210730175921-2692f3496a21
-	github.com/strongo/dalgo v0.0.0-20211003212313-da4bc92b4fbf
-	github.com/strongo/dalgo-end2end-tests v0.0.0-20211003202532-dedfda65c6e8
+	github.com/strongo/dalgo v0.0.0-20211007202621-557267c5c7b2
+	github.com/strongo/dalgo-end2end-tests v0.0.0-20211007202834-0f575d17f140
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 )
 

@@ -4,26 +4,26 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/dalgo"
+	"github.com/strongo/dalgo/dal"
 )
 
-func (dtb database) Set(ctx context.Context, record dalgo.Record) error {
+func (dtb database) Set(ctx context.Context, record dal.Record) error {
 	return setSingle(ctx, dtb.options, record, dtb.db.Query, dtb.db.Exec)
 }
 
-func (t transaction) Set(ctx context.Context, record dalgo.Record) error {
+func (t transaction) Set(ctx context.Context, record dal.Record) error {
 	return setSingle(ctx, t.options, record, t.tx.Query, t.tx.Exec)
 }
 
-func (dtb database) SetMulti(ctx context.Context, records []dalgo.Record) error {
+func (dtb database) SetMulti(ctx context.Context, records []dal.Record) error {
 	return setMulti(ctx, dtb.options, records, dtb.db.Query, dtb.db.Exec)
 }
 
-func (t transaction) SetMulti(ctx context.Context, records []dalgo.Record) error {
+func (t transaction) SetMulti(ctx context.Context, records []dal.Record) error {
 	return setMulti(ctx, t.options, records, t.tx.Query, t.tx.Exec)
 }
 
-func setSingle(_ context.Context, options Options, record dalgo.Record, execQuery queryExecutor, exec statementExecutor) error {
+func setSingle(_ context.Context, options Options, record dal.Record, execQuery queryExecutor, exec statementExecutor) error {
 	exists, err := existsSingle(options, record.Key(), execQuery)
 	if err != nil {
 		return errors.WithMessage(err, "failed to check if record exists")
@@ -40,7 +40,7 @@ func setSingle(_ context.Context, options Options, record dalgo.Record, execQuer
 	return nil
 }
 
-func setMulti(ctx context.Context, options Options, records []dalgo.Record, execQuery queryExecutor, execStatement statementExecutor) error {
+func setMulti(ctx context.Context, options Options, records []dal.Record, execQuery queryExecutor, execStatement statementExecutor) error {
 	for i, record := range records {
 		if err := setSingle(ctx, options, record, execQuery, execStatement); err != nil {
 			return errors.WithMessagef(err, "failed to set record #%v of %v", i+1, len(records))
@@ -49,7 +49,7 @@ func setMulti(ctx context.Context, options Options, records []dalgo.Record, exec
 	return nil
 }
 
-func existsSingle(options Options, key *dalgo.Key, execQuery queryExecutor) (bool, error) {
+func existsSingle(options Options, key *dal.Key, execQuery queryExecutor) (bool, error) {
 	collection := key.Kind()
 	var col = "ID"
 	var where = "ID = ?"

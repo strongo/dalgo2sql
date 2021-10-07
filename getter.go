@@ -6,30 +6,30 @@ import (
 	"errors"
 	"fmt"
 	"github.com/georgysavva/scany/sqlscan"
-	"github.com/strongo/dalgo"
+	"github.com/strongo/dalgo/dal"
 	"reflect"
 	"strings"
 )
 
 type queryExecutor = func(query string, args ...interface{}) (*sql.Rows, error)
 
-func (dtb database) Get(ctx context.Context, record dalgo.Record) error {
+func (dtb database) Get(ctx context.Context, record dal.Record) error {
 	return getSingle(ctx, dtb.options, record, dtb.db.Query)
 }
 
-func (t transaction) Get(ctx context.Context, record dalgo.Record) error {
+func (t transaction) Get(ctx context.Context, record dal.Record) error {
 	return getSingle(ctx, t.options, record, t.tx.Query)
 }
 
-func (dtb database) GetMulti(ctx context.Context, records []dalgo.Record) error {
+func (dtb database) GetMulti(ctx context.Context, records []dal.Record) error {
 	return getMulti(ctx, dtb.options, records, dtb.db.Query)
 }
 
-func (t transaction) GetMulti(ctx context.Context, records []dalgo.Record) error {
+func (t transaction) GetMulti(ctx context.Context, records []dal.Record) error {
 	return getMulti(ctx, t.options, records, t.tx.Query)
 }
 
-func getSingle(_ context.Context, options Options, record dalgo.Record, exec queryExecutor) error {
+func getSingle(_ context.Context, options Options, record dal.Record, exec queryExecutor) error {
 	fields := getSelectFields(record, false, options)
 	queryText := fmt.Sprintf("SELECT %v FROM %v", strings.Join(fields, ", "), record.Key().Kind())
 	rows, err := exec(queryText)
@@ -38,8 +38,8 @@ func getSingle(_ context.Context, options Options, record dalgo.Record, exec que
 		return err
 	}
 	if !rows.Next() {
-		record.SetError(dalgo.ErrRecordNotFound)
-		return dalgo.NewErrNotFoundByKey(record.Key(), dalgo.ErrNoMoreRecords)
+		record.SetError(dal.ErrRecordNotFound)
+		return dal.NewErrNotFoundByKey(record.Key(), dal.ErrNoMoreRecords)
 	}
 	if err = rowIntoRecord(rows, record, false); err != nil {
 		return err
@@ -50,8 +50,8 @@ func getSingle(_ context.Context, options Options, record dalgo.Record, exec que
 	return nil
 }
 
-func getMulti(ctx context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
-	byCollection := make(map[string][]dalgo.Record)
+func getMulti(ctx context.Context, options Options, records []dal.Record, exec queryExecutor) error {
+	byCollection := make(map[string][]dal.Record)
 	for _, r := range records {
 		id := r.Key().Kind()
 		recs := byCollection[id]
@@ -65,11 +65,11 @@ func getMulti(ctx context.Context, options Options, records []dalgo.Record, exec
 	return nil
 }
 
-func getMultiFromSingleTable(_ context.Context, options Options, records []dalgo.Record, exec queryExecutor) error {
+func getMultiFromSingleTable(_ context.Context, options Options, records []dal.Record, exec queryExecutor) error {
 	if len(records) == 0 {
 		return nil
 	}
-	records = append(make([]dalgo.Record, 0, len(records)), records...)
+	records = append(make([]dal.Record, 0, len(records)), records...)
 	collection := records[0].Key().Kind()
 	val := reflect.ValueOf(records[0].Data()).Elem()
 	valType := val.Type()
@@ -135,12 +135,12 @@ func getMultiFromSingleTable(_ context.Context, options Options, records []dalgo
 		return err
 	}
 	for _, record := range records {
-		record.SetError(dalgo.NewErrNotFoundByKey(record.Key(), nil))
+		record.SetError(dal.NewErrNotFoundByKey(record.Key(), nil))
 	}
 	return err
 }
 
-func rowIntoRecord(rows *sql.Rows, record dalgo.Record, pkIncluded bool) error {
+func rowIntoRecord(rows *sql.Rows, record dal.Record, pkIncluded bool) error {
 	data := record.Data()
 	if data == nil {
 		panic("getting records by key requires a record with data")
@@ -154,7 +154,7 @@ func rowIntoRecord(rows *sql.Rows, record dalgo.Record, pkIncluded bool) error {
 	//return delayedScanWithDataTo(rows, record)
 }
 
-//func delayedScanWithDataTo(rows *sql.Rows, record dalgo.Record) error {
+//func delayedScanWithDataTo(rows *sql.Rows, record dal.Record) error {
 //	row, err := scanIntoMap(rows)
 //	if err != nil {
 //		record.SetError(err)
@@ -223,7 +223,7 @@ func scanIntoDataWithPrimaryKeyIncluded(rows *sql.Rows, data interface{}) error 
 //	return m, nil
 //}
 
-func getSelectFields(record dalgo.Record, includePK bool, options Options) (fields []string) {
+func getSelectFields(record dal.Record, includePK bool, options Options) (fields []string) {
 	data := record.Data()
 	if data == nil {
 		panic(fmt.Sprintf("getting by ID requires a record with data, key: %v", record.Key()))
