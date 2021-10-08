@@ -23,8 +23,8 @@ func (dtb database) DeleteMulti(ctx context.Context, keys []*dal.Key) error {
 }
 
 func deleteSingle(_ context.Context, options Options, key *dal.Key, exec statementExecutor) error {
-	collection := key.Kind()
-	query := fmt.Sprintf("DELETE FROM %v WHERE ", key.Kind())
+	collection := key.Collection()
+	query := fmt.Sprintf("DELETE FROM %v WHERE ", key.Collection())
 	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
 		query += rs.PrimaryKey[0].Name + " = ?"
 	} else {
@@ -61,7 +61,7 @@ func deleteMulti(ctx context.Context, options Options, keys []*dal.Key, exec sta
 		return nil // TODO: code above commented out as tests are failing for RAMSQL driver.
 	}
 	for i, key := range keys {
-		kind := key.Kind()
+		kind := key.Collection()
 		if kind == prevTable {
 			tableKeys = append(tableKeys, key)
 			continue
@@ -85,7 +85,7 @@ func deleteMulti(ctx context.Context, options Options, keys []*dal.Key, exec sta
 func deleteMultiInSingleTable(_ context.Context, options Options, keys []*dal.Key, exec statementExecutor) error {
 	pkCol := "ID"
 
-	collection := keys[0].Kind()
+	collection := keys[0].Collection()
 	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
 		pkCol = rs.PrimaryKey[0].Name
 	}

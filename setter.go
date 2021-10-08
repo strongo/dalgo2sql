@@ -50,7 +50,7 @@ func setMulti(ctx context.Context, options Options, records []dal.Record, execQu
 }
 
 func existsSingle(options Options, key *dal.Key, execQuery queryExecutor) (bool, error) {
-	collection := key.Kind()
+	collection := key.Collection()
 	var col = "ID"
 	var where = "ID = ?"
 	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {

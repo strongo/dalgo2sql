@@ -31,7 +31,7 @@ func (t transaction) GetMulti(ctx context.Context, records []dal.Record) error {
 
 func getSingle(_ context.Context, options Options, record dal.Record, exec queryExecutor) error {
 	fields := getSelectFields(record, false, options)
-	queryText := fmt.Sprintf("SELECT %v FROM %v", strings.Join(fields, ", "), record.Key().Kind())
+	queryText := fmt.Sprintf("SELECT %v FROM %v", strings.Join(fields, ", "), record.Key().Collection())
 	rows, err := exec(queryText)
 	if err != nil {
 		record.SetError(err)
@@ -53,7 +53,7 @@ func getSingle(_ context.Context, options Options, record dal.Record, exec query
 func getMulti(ctx context.Context, options Options, records []dal.Record, exec queryExecutor) error {
 	byCollection := make(map[string][]dal.Record)
 	for _, r := range records {
-		id := r.Key().Kind()
+		id := r.Key().Collection()
 		recs := byCollection[id]
 		byCollection[id] = append(recs, r)
 	}
@@ -70,7 +70,7 @@ func getMultiFromSingleTable(_ context.Context, options Options, records []dal.R
 		return nil
 	}
 	records = append(make([]dal.Record, 0, len(records)), records...)
-	collection := records[0].Key().Kind()
+	collection := records[0].Key().Collection()
 	val := reflect.ValueOf(records[0].Data()).Elem()
 	valType := val.Type()
 	fields := getSelectFields(records[0], true, options)
@@ -80,7 +80,7 @@ func getMultiFromSingleTable(_ context.Context, options Options, records []dal.R
 	}
 	queryText := fmt.Sprintf("SELECT %v FROM %v WHERE %v",
 		strings.Join(fields, ", "),
-		records[0].Key().Kind(),
+		records[0].Key().Collection(),
 		idCol,
 	)
 	q := make([]string, len(records))
@@ -238,7 +238,7 @@ func getSelectFields(record dal.Record, includePK bool, options Options) (fields
 	numberOfFields := valType.NumField()
 	if includePK {
 		fields = make([]string, 1, numberOfFields+1)
-		collection := record.Key().Kind()
+		collection := record.Key().Collection()
 		if rs, hasOptions := options.Recordsets[collection]; hasOptions {
 			fields[0] = rs.PrimaryKey[0].Name
 		} else {

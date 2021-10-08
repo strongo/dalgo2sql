@@ -25,13 +25,13 @@ func (t transaction) UpdateMulti(ctx context.Context, keys []*dal.Key, updates [
 
 func updateSingle(_ context.Context, options Options, execStatement statementExecutor, key *dal.Key, updates []dal.Update, preconditions ...dal.Precondition) error {
 	qry := query{
-		text: fmt.Sprintf("UPDATE %v SET", key.Kind()),
+		text: fmt.Sprintf("UPDATE %v SET", key.Collection()),
 	}
 	for _, update := range updates {
 		qry.text += fmt.Sprintf("\n\t%v = ?", update.Field)
 		qry.args = append(qry.args, update.Value)
 	}
-	collection := key.Kind()
+	collection := key.Collection()
 	if rs, hasOptions := options.Recordsets[collection]; hasOptions && len(rs.PrimaryKey) == 1 {
 		qry.text += fmt.Sprintf("\n\tWHERE %v = ?", rs.PrimaryKey[0].Name)
 	} else {

@@ -23,9 +23,9 @@ func buildSingleRecordQuery(o operation, options Options, record dal.Record) (qu
 	key := record.Key()
 	switch o {
 	case insert:
-		query.text = fmt.Sprintf("INSERT INTO %v ", key.Kind())
+		query.text = fmt.Sprintf("INSERT INTO %v ", key.Collection())
 	case update:
-		query.text = fmt.Sprintf("UPDATE %v ", key.Kind())
+		query.text = fmt.Sprintf("UPDATE %v ", key.Collection())
 	}
 	var cols []string
 	var q []string
@@ -38,7 +38,7 @@ func buildSingleRecordQuery(o operation, options Options, record dal.Record) (qu
 
 	if key.ID != nil && o == insert {
 		query.args = append(query.args, key.ID)
-		if rs, hasOptions := options.Recordsets[key.Kind()]; hasOptions && len(rs.PrimaryKey) == 1 {
+		if rs, hasOptions := options.Recordsets[key.Collection()]; hasOptions && len(rs.PrimaryKey) == 1 {
 			cols = append(cols, rs.PrimaryKey[0].Name)
 		} else {
 			cols = append(cols, "ID")
@@ -60,12 +60,12 @@ func buildSingleRecordQuery(o operation, options Options, record dal.Record) (qu
 	switch o {
 	case insert:
 		query.text = fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)",
-			key.Kind(),
+			key.Collection(),
 			strings.Join(cols, ", "),
 			strings.Join(q, ", "),
 		)
 	case update:
-		collection := key.Kind()
+		collection := key.Collection()
 		where := "WHERE ID = ?"
 		if rs, hasOptions := options.Recordsets[collection]; hasOptions {
 			if len(rs.PrimaryKey) == 1 {
