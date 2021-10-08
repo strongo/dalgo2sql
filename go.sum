@@ -149,12 +149,16 @@ github.com/strongo/dalgo v0.0.0-20211007202621-557267c5c7b2 h1:UWgqiyhSoJS+ngqUM
 github.com/strongo/dalgo v0.0.0-20211007202621-557267c5c7b2/go.mod h1:2cen3Tk4Vjn+HTs42sZykv9RakPi4jOhbTRVqJ83yqQ=
 github.com/strongo/dalgo v0.0.0-20211007204501-5e9ea7667171 h1:jLqvSj1cH8onbC+4pgYRX/p0eIi+Wfo9LG5A/sKjbYE=
 github.com/strongo/dalgo v0.0.0-20211007204501-5e9ea7667171/go.mod h1:2cen3Tk4Vjn+HTs42sZykv9RakPi4jOhbTRVqJ83yqQ=
+github.com/strongo/dalgo v0.0.0-20211007211258-27794e6c07bd h1:d3J9C9S3gdMHZb4JZsDxjHL+0vxUYp5Q2tOGMwlTPno=
+github.com/strongo/dalgo v0.0.0-20211007211258-27794e6c07bd/go.mod h1:2cen3Tk4Vjn+HTs42sZykv9RakPi4jOhbTRVqJ83yqQ=
 github.com/strongo/dalgo-end2end-tests v0.0.0-20211003202532-dedfda65c6e8 h1:A2K2M6n5UUpfXrGjIbmknIlZgRkADgQDSSb2bbm7DiY=
 github.com/strongo/dalgo-end2end-tests v0.0.0-20211003202532-dedfda65c6e8/go.mod h1:BTGg3o+aAOoOIQz29klObaxg2sqNytfTi3mpHnUHcPc=
 github.com/strongo/dalgo-end2end-tests v0.0.0-20211007202834-0f575d17f140 h1:NVAz1A/Ufp69ADZXEQpvEX3NaHGlu2cnPHjevXGuQ3g=
 github.com/strongo/dalgo-end2end-tests v0.0.0-20211007202834-0f575d17f140/go.mod h1:PGDtnGfvD/vJ4DlclxjpheEpvtMVgVFyPx1tnUO74iY=
 github.com/strongo/dalgo-end2end-tests v0.0.0-20211007204725-c974ed0fe93f h1:WRXqf+ixp7cB7Amy3N/lfdeDdgOW+C3wkCUtb5XxrCg=
 github.com/strongo/dalgo-end2end-tests v0.0.0-20211007204725-c974ed0fe93f/go.mod h1:tqlLDqDwRDTzRTYYzcZkNfvoUVS0eq2lfY58uF9bpQA=
+github.com/strongo/dalgo-end2end-tests v0.0.0-20211008050209-fd04744c2c68 h1:Ud0/rnGJbTc5/ehu6uzV71Zq4i5VOyPZVqBrfRxCqME=
+github.com/strongo/dalgo-end2end-tests v0.0.0-20211008050209-fd04744c2c68/go.mod h1:fyMK3BUthaLmlSHswifOdBridF+b3S9EuTKJhcIU4Oo=
 github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d h1:I8qa7ggQ5RT+hO5gTTaBtS8ZEvbsBIik//AdM4dZL4g=
 github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d/go.mod h1:b5FiRTvklOIQI/iX+4qfwtK7Jrs+9KTZFn1dP9iX26o=
 github.com/strongo/validation v0.0.0-20210908182457-7acc8bdbeffd h1:hvHVKVARPjItp1EQxTk0v3SxE8fICA3n0s2iVeejhOU=
