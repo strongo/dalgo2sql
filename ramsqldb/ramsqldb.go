@@ -14,8 +14,8 @@ func OpenTestDb(t *testing.T) *sql.DB {
 		t.Fatalf("sql.Open : Error : %s\n", err)
 	}
 	batch := []string{
-		"CREATE TABLE E2ETest1 (ID1 VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
-		"CREATE TABLE E2ETest2 (ID VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
+		"CREATE TABLE DalgoE2E_E2ETest1 (ID1 VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
+		"CREATE TABLE DalgoE2E_E2ETest2 (ID VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
 		"CREATE TABLE NonExistingKind (ID VARCHAR(10) PRIMARY KEY, StringProp TEXT, IntegerProp INT);",
 	}
 	for _, b := range batch {
