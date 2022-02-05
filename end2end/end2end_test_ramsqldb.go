@@ -1,17 +1,11 @@
-package end2end_test
+package end2end
 
 import (
 	"github.com/strongo/dalgo/end2end"
 	"github.com/strongo/dalgo2sql"
-	"github.com/strongo/dalgo2sql/ramsqldb"
+	"github.com/strongo/dalgo2sql/end2end/ramsqldb"
 	"testing"
 )
-
-func TestEndToEnd(t *testing.T) {
-	t.Run("RAMSQLDB", func(t *testing.T) {
-		testEndToEndRAMSQLDB(t)
-	})
-}
 
 func testEndToEndRAMSQLDB(t *testing.T) {
 	db := ramsqldb.OpenTestDb(t)
