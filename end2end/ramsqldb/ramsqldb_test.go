@@ -7,4 +7,7 @@ func TestOpenTestDb(t *testing.T) {
 	if db == nil {
 		t.Fatal("OpenTestDb() returned nil")
 	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close test DB: %v", err)
+	}
 }
