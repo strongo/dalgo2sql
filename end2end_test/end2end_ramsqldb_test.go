@@ -8,6 +8,12 @@ import (
 )
 
 func TestEndToEnd(t *testing.T) {
+	t.Run("RAMSQLDB", func(t *testing.T) {
+		testEndToEndRAMSQLDB(t)
+	})
+}
+
+func testEndToEndRAMSQLDB(t *testing.T) {
 	db := ramsqldb.OpenTestDb(t)
 	defer func() {
 		_ = db.Close()
