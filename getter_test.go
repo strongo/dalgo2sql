@@ -19,14 +19,28 @@ func Test_getSelectFields(t *testing.T) {
 		wantFields []string
 	}{
 		{
-			name: "simple_fields",
+			name: "simple_fields_exclude_primary_key",
 			args: args{
 				record: dal.NewRecordWithoutKey(struct {
 					StrField string
 					IntField int
 				}{}),
+				includePK: false,
 			},
 			wantFields: []string{"StrField", "IntField"},
+		},
+		{
+			name: "simple_fields_include_primary_key",
+			args: args{
+				record: dal.NewRecordWithData(
+					dal.NewKeyWithStrID("TestTable", "r1"),
+					struct {
+						StrField string
+						IntField int
+					}{}),
+				includePK: true,
+			},
+			wantFields: []string{"ID", "StrField", "IntField"},
 		},
 	}
 	for _, tt := range tests {

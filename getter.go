@@ -237,8 +237,15 @@ func getSelectFields(record dal.Record, includePK bool, options Options) (fields
 	valType := val.Type()
 	numberOfFields := valType.NumField()
 	if includePK {
-		fields = make([]string, 1, numberOfFields+1)
+		key := record.Key()
+		if key == nil {
+			panic("not able to determine key field(s) as a record does not reference a key")
+		}
 		collection := record.Key().Collection()
+		if strings.TrimSpace(collection) == "" {
+			panic("record key reference an empty collection name")
+		}
+		fields = make([]string, 1, numberOfFields+1)
 		if rs, hasOptions := options.Recordsets[collection]; hasOptions {
 			fields[0] = rs.PrimaryKey[0].Name
 		} else {
